@@ -1,42 +1,41 @@
-// ================================
+
 // ✅ Import Modules
-// ================================
+
 const express = require("express");
 const cors = require("cors");
-const bodyParser = require("body-parser");
+
 const mongoose = require("mongoose");
 require("dotenv").config();
 
-// ================================
+
 // ✅ App Config
-// ================================
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ================================
-// ✅ Middlewares
-// ================================
-app.use(cors());
-app.use(bodyParser.json());
 
-// ================================
+// ✅ Middlewares
+
+app.use(cors());
+app.use(express.json());
+
 // ✅ MongoDB Connection
-// ================================
+
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB Connected Successfully"))
   .catch((err) => console.log("❌ MongoDB Connection Failed:", err));
 
-// ================================
+
 // ✅ Test Route
-// ================================
+
 app.get("/", (req, res) => {
   res.send("Backend and MongoDB Connected Successfully!");
 });
 
-// ================================
+
 // ✅ Contact Schema & Model
-// ================================
+
 const contactSchema = new mongoose.Schema({
   name: String,
   email: String,
@@ -46,9 +45,9 @@ const contactSchema = new mongoose.Schema({
 
 const Contact = mongoose.model("Contact", contactSchema);
 
-// ================================
+
 // ✅ API Routes
-// ================================
+
 app.post("/api/contact", async (req, res) => {
   const { name, email, message } = req.body;
 
@@ -74,8 +73,10 @@ app.post("/api/data", (req, res) => {
   res.json({ message: "Data received successfully!", data: userData });
 });
 
-// ================================
+
 // ✅ Start Server
-// ================================
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
+app.listen(5000, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
 
