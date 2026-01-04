@@ -1,53 +1,39 @@
-
-// ✅ Import Modules
-
+// ================= Imports =================
 const express = require("express");
 const cors = require("cors");
-
 const mongoose = require("mongoose");
 require("dotenv").config();
 
-
-// ✅ App Config
-
+// ================= App Config =================
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-
-// ✅ Middlewares
-
+// ================= Middlewares =================
 app.use(cors());
 app.use(express.json());
 
-// ✅ MongoDB Connection
-
+// ================= MongoDB Connection =================
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB Connected Successfully"))
-  .catch((err) => console.log("❌ MongoDB Connection Failed:", err));
+  .catch(err => console.error("❌ MongoDB Connection Error:", err));
 
-
-// ✅ Test Route
-
+// ================= Test Route =================
 app.get("/", (req, res) => {
-  res.send("Backend and MongoDB Connected Successfully!");
+  res.send("🚀 Backend is running successfully!");
 });
 
-
-// ✅ Contact Schema & Model
-
+// ================= Contact Schema =================
 const contactSchema = new mongoose.Schema({
-  name: String,
-  email: String,
-  message: String,
-  date: { type: Date, default: Date.now },
+  name: { type: String, required: true },
+  email: { type: String, required: true },
+  message: { type: String, required: true },
+  date: { type: Date, default: Date.now }
 });
 
 const Contact = mongoose.model("Contact", contactSchema);
 
-
-// ✅ API Routes
-
+// ================= API Route =================
 app.post("/api/contact", async (req, res) => {
   const { name, email, message } = req.body;
 
@@ -62,21 +48,11 @@ app.post("/api/contact", async (req, res) => {
     res.json({ message: "Form submitted successfully!" });
   } catch (err) {
     console.error("❌ Error saving contact:", err);
-    res.status(500).json({ error: "Server error. Please try again later." });
+    res.status(500).json({ error: "Server error. Try again later." });
   }
 });
 
-// Example route (optional)
-app.post("/api/data", (req, res) => {
-  const userData = req.body;
-  console.log("📦 Data received from frontend:", userData);
-  res.json({ message: "Data received successfully!", data: userData });
-});
-
-
-// ✅ Start Server
-
-app.listen(5000, () => {
+// ================= Start Server =================
+app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
-
