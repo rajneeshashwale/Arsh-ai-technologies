@@ -291,11 +291,15 @@ nav a:hover {
     align-items: center;
     padding: 140px 60px 80px;
     min-height: 100vh;
+    gap: 48px;
 }
 
 .hero-text {
-    flex: 1 1 450px;
-    max-width: 600px;
+    flex: 1 1 0;
+    max-width: 560px;
+    min-width: 320px;
+    position: relative;
+    z-index: 2;
 }
 
 .hero-text h1 {
@@ -353,12 +357,18 @@ nav a:hover {
 
 .hero-image {
     position: relative;
-    flex: 1 1 350px;
+    flex: 1 1 0;
+    min-width: 320px;
+    max-width: 560px;
+    width: 100%;
+    margin: 0 auto;
     text-align: center;
+    overflow: hidden;
+    border-radius: 16px;
 }
 
 .hero-image img {
-    width: 90%;
+    width: 100%;
     border-radius: 16px;
     box-shadow: 0 0 30px rgba(168, 85, 247, 0.5);
     transition: transform 0.5s ease, filter 0.5s ease;
@@ -366,7 +376,7 @@ nav a:hover {
 }
 
 .hero-image:hover img {
-    transform: scale(1.04);
+    transform: scale(1.03);
     filter: brightness(1);
 }
 
