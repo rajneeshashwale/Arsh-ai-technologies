@@ -5,12 +5,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Arsh AI Technologies</title>
+    <meta name="description" content="Arsh AI Technologies delivers AI products, services, and business automation solutions." />
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
+    <link rel="preconnect" href="https://images.unsplash.com" />
+    <link rel="preconnect" href="https://media.istockphoto.com" />
+    <link rel="preconnect" href="https://www.technewsworld.com" />
     <link rel="stylesheet" href="style.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
 <body>
-    
+
     <!-- Navigation Bar -->
     <header>
         <div class="logo">Arsh<span>AI</span></div>
@@ -23,8 +29,49 @@
                 <li><a href="#contact"><i class="fa-solid fa-envelope"></i> Contact</a></li>
             </ul>
         </nav>
-        <div class="menu-toggle" id="menu-toggle">☰</div>
+        <div class="auth-actions">
+            <button type="button" class="auth-trigger" id="auth-open">Login</button>
+            <div class="auth-user" id="auth-user" hidden>
+                <span id="auth-user-name"></span>
+                <button type="button" class="logout-btn" id="logout-btn">Logout</button>
+            </div>
+        </div>
+        <div class="menu-toggle" id="menu-toggle">&#9776;</div>
     </header>
+
+    <div class="auth-modal" id="auth-modal" aria-hidden="true">
+        <div class="auth-backdrop" data-close-auth></div>
+        <div class="auth-dialog" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+            <button type="button" class="auth-close" id="auth-close" aria-label="Close login dialog">&times;</button>
+            <h2 id="auth-title">Welcome Back</h2>
+            <p class="auth-copy">Login ya account create karke apni inquiry track karna start kariye.</p>
+
+            <div class="auth-tabs">
+                <button type="button" class="auth-tab active" data-auth-tab="login">Login</button>
+                <button type="button" class="auth-tab" data-auth-tab="register">Register</button>
+            </div>
+
+            <form id="loginForm" class="auth-form auth-panel active" data-auth-panel="login">
+                <input type="email" id="login-email" placeholder="Email Address" autocomplete="email" required />
+                <input type="password" id="login-password" placeholder="Password" autocomplete="current-password" required />
+                <button type="submit" class="auth-submit">Login</button>
+            </form>
+
+            <div class="google-auth-wrap">
+                <div class="auth-divider"><span>or continue with</span></div>
+                <div id="google-signin-slot" class="google-signin-slot"></div>
+            </div>
+
+            <form id="registerForm" class="auth-form auth-panel" data-auth-panel="register">
+                <input type="text" id="register-name" placeholder="Full Name" autocomplete="name" required />
+                <input type="email" id="register-email" placeholder="Email Address" autocomplete="email" required />
+                <input type="password" id="register-password" placeholder="Create Password" autocomplete="new-password" required />
+                <button type="submit" class="auth-submit">Create Account</button>
+            </form>
+
+            <p id="auth-status" class="auth-status" aria-live="polite"></p>
+        </div>
+    </div>
 
     <!-- Hero Section -->
     <section class="hero" id="home">
@@ -41,12 +88,9 @@
         </div>
 
         <div class="hero-image">
-            <img src="https://www.technewsworld.com/wp-content/uploads/sites/3/2025/02/humanoid-robot-programming-code.jpg" alt="AI Expert" />
+            <img src="https://www.technewsworld.com/wp-content/uploads/sites/3/2025/02/humanoid-robot-programming-code.jpg" alt="AI Expert" fetchpriority="high" decoding="async" />
             <div class="uptime-badge"><i class="fa-solid fa-circle-check"></i> 99.9% Uptime</div>
         </div>
-
-        
-
     </section>
 
     <!-- Products Section -->
@@ -58,7 +102,6 @@
         </p>
 
         <div class="product-container">
-            <!-- Card 1 -->
             <div class="product-card">
                 <div class="icon">
                     <i class="fas fa-brain"></i>
@@ -69,7 +112,6 @@
                 <a href="#" class="btn-card">Learn More <i class="fa-solid fa-arrow-right"></i></a>
             </div>
 
-            <!-- Card 2 -->
             <div class="product-card">
                 <div class="icon">
                     <i class="fas fa-robot"></i>
@@ -80,7 +122,6 @@
                 <a href="#" class="btn-card">Learn More <i class="fa-solid fa-arrow-right"></i></a>
             </div>
 
-            <!-- Card 3 -->
             <div class="product-card">
                 <div class="icon">
                     <i class="fas fa-language"></i>
@@ -91,7 +132,6 @@
                 <a href="#" class="btn-card">Learn More <i class="fa-solid fa-arrow-right"></i></a>
             </div>
 
-            <!-- Card 4 -->
             <div class="product-card">
                 <div class="icon">
                     <i class="fas fa-cloud"></i>
@@ -113,10 +153,9 @@
         </p>
 
         <div class="services-container">
-            <!-- Service Card 1 -->
             <div class="service-card">
                 <div class="service-img">
-                    <img src="https://images.unsplash.com/photo-1553877522-43269d4ea984" alt="AI Consulting" />
+                    <img src="https://images.unsplash.com/photo-1553877522-43269d4ea984" alt="AI Consulting" loading="lazy" decoding="async" />
                 </div>
                 <div class="service-content">
                     <h3>AI Strategy & Consulting</h3>
@@ -125,10 +164,9 @@
                 </div>
             </div>
 
-            <!-- Service Card 2 -->
             <div class="service-card">
                 <div class="service-img">
-                    <img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d" alt="Data Engineering" />
+                    <img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d" alt="Data Engineering" loading="lazy" decoding="async" />
                 </div>
                 <div class="service-content">
                     <h3>Data Engineering</h3>
@@ -137,11 +175,10 @@
                 </div>
             </div>
 
-            <!-- Service Card 3 -->
             <div class="service-card">
                 <div class="service-img">
                     <img src="https://media.istockphoto.com/id/2012883461/photo/ai-data-analysis-business-people-use-ai-to-analyze-financial-related-data-big-data-complex.webp?s=1024x1024&w=is&k=20&c=ztgU0XEkYbUqBsQ8G-nWaPeZCapBac6qQanbXoinTxc="
-                        alt="AI Model Development" />
+                        alt="AI Model Development" loading="lazy" decoding="async" />
                 </div>
                 <div class="service-content">
                     <h3>Custom AI Model Development</h3>
@@ -149,11 +186,10 @@
                 </div>
             </div>
 
-            <!-- Service Card 4 -->
             <div class="service-card">
                 <div class="service-img">
                     <img src="https://images.unsplash.com/photo-1527443154391-507e9dc6c5cc"
-                        alt="Cloud AI Integration" />
+                        alt="Cloud AI Integration" loading="lazy" decoding="async" />
                 </div>
                 <div class="service-content">
                     <h3>Cloud AI Integration</h3>
@@ -169,7 +205,7 @@
         <div class="about-container">
             <div class="about-image">
                 <img src="https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=1000"
-                    alt="AI Innovation" height="400 vh" width="100%" />
+                    alt="AI Innovation" height="400" width="100%" loading="lazy" decoding="async" />
             </div>
 
             <div class="about-content">
@@ -182,7 +218,7 @@
                 </p>
 
                 <p>
-                    We combine creativity and cutting-edge technology to design scalable and secure products —
+                    We combine creativity and cutting-edge technology to design scalable and secure products -
                     from advanced machine learning models to modern web solutions.
                     Our mission is to empower industries with smarter and more efficient systems.
                 </p>
@@ -217,7 +253,7 @@
                 <h2>Contact <span>Arsh AI Technologies</span></h2>
                 <p>
                     Have a project in mind or want to collaborate?
-                    Get in touch with us — we’d love to hear from you.
+                    Get in touch with us - we'd love to hear from you.
                 </p>
 
                 <div class="info-box">
@@ -285,11 +321,11 @@
         </div>
 
         <div class="footer-bottom">
-            <p>© 2026 Arsh AI Technologies | All Rights Reserved.</p>
+            <p>&copy; 2026 Arsh AI Technologies | All Rights Reserved.</p>
         </div>
     </footer>
 
-    <script src="script.js"></script>
+    <script src="script.js" defer></script>
 </body>
 
 </html>
