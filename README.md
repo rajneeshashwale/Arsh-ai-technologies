@@ -10,7 +10,9 @@ Create `backend/.env` with:
 PORT=5000
 MONGO_URI=your_mongodb_connection_string
 GOOGLE_CLIENT_ID=your_google_oauth_web_client_id
-FRONTEND_ORIGINS=http://localhost:5500,http://127.0.0.1:5500,https://your-frontend-domain
+GOOGLE_CLIENT_SECRET=your_google_oauth_client_secret
+FRONTEND_ORIGINS=http://localhost:5500,http://127.0.0.1:5500,https://arsh-ai-technologies-git-main-rajneesh-ashwales-projects.vercel.app
+CALLBACK_URL=http://localhost:5000/auth/google/callback
 ```
 
 ## Google Console setup
@@ -19,28 +21,4 @@ Use a Google OAuth 2.0 **Web application** client and add your frontend origins,
 
 - `http://localhost:5500`
 - `http://127.0.0.1:5500`
-- `https://your-frontend-domain`
-
-The `GOOGLE_CLIENT_ID` in backend env must be the same client id used for those origins.
-
-## Fixing `Error 400: origin_mismatch`
-
-If Google shows `origin_mismatch`, the frontend URL opening the page is not whitelisted in your Google OAuth client.
-
-Add the exact origin in Google Cloud Console:
-
-1. Go to `Google Cloud Console -> APIs & Services -> Credentials`.
-2. Open your OAuth 2.0 **Web application** client.
-3. In `Authorized JavaScript origins`, add the exact frontend origin:
-   - local: `http://localhost:5500`
-   - local: `http://127.0.0.1:5500`
-   - production: `https://your-frontend-domain`
-4. Save the client.
-5. Put the same frontend origins in `FRONTEND_ORIGINS` in `backend/.env`.
-6. Restart the backend after changing env values.
-
-Important:
-
-- Add only the origin, not a full path. Use `https://example.com`, not `https://example.com/login`.
-- Do not add a trailing slash.
-- The backend `GOOGLE_CLIENT_ID` must match the same Google OAuth client you updated.
+- `https://arsh-ai-technologies-git-main-rajneesh-ashwales-projects.vercel.app`
