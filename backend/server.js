@@ -8,12 +8,26 @@ require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
+const FRONTEND_ORIGINS = (process.env.FRONTEND_ORIGINS || "")
+  .split(",")
+  .map(origin => origin.trim())
+  .filter(Boolean);
 const emailPattern = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 const namePattern = /^[A-Za-z\s]+$/;
 const TOKEN_TTL_MS = 1000 * 60 * 60 * 24 * 7;
 
 app.disable("x-powered-by");
-app.use(cors());
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin || FRONTEND_ORIGINS.length === 0 || FRONTEND_ORIGINS.includes(origin)) {
+        return callback(null, true);
+      }
+
+      callback(new Error("Origin not allowed by CORS."));
+    }
+  })
+);
 app.use(express.json({ limit: "100kb" }));
 
 mongoose
@@ -164,7 +178,8 @@ app.get("/", (request, response) => {
 app.get("/api/auth/google/config", (request, response) => {
   response.json({
     enabled: Boolean(GOOGLE_CLIENT_ID),
-    clientId: GOOGLE_CLIENT_ID || null
+    clientId: GOOGLE_CLIENT_ID || null,
+    authorizedOrigins: FRONTEND_ORIGINS
   });
 });
 

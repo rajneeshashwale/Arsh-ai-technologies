@@ -269,6 +269,14 @@ nav a:hover {
     min-height: 44px;
 }
 
+.google-auth-hint {
+    margin-top: 12px;
+    color: #aab2c6;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    text-align: left;
+}
+
 .auth-status.error {
     color: #ff8a8a;
 }

@@ -21,6 +21,7 @@ const authPanels = document.querySelectorAll("[data-auth-panel]");
 const loginForm = document.getElementById("loginForm");
 const registerForm = document.getElementById("registerForm");
 const googleSigninSlot = document.getElementById("google-signin-slot");
+const googleAuthHint = document.getElementById("google-auth-hint");
 const contactForm = document.getElementById("contactForm");
 const contactStatus = document.getElementById("form-status");
 
@@ -57,6 +58,15 @@ const clearToken = () => {
 const getAuthHeaders = () => {
   const token = getToken();
   return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
+const setGoogleAuthHint = message => {
+  if (!googleAuthHint) {
+    return;
+  }
+
+  googleAuthHint.hidden = !message;
+  googleAuthHint.textContent = message;
 };
 
 const setAuthMode = mode => {
@@ -162,18 +172,31 @@ const initializeGoogleLogin = async () => {
   }
 
   let googleClientId = "";
+  let authorizedOrigins = [];
+  const currentOrigin = window.location.origin || `${window.location.protocol}//${window.location.host}`;
 
   try {
     const config = await request("/api/auth/google/config", { method: "GET" });
     googleClientId = config.enabled ? config.clientId || "" : "";
+    authorizedOrigins = Array.isArray(config.authorizedOrigins) ? config.authorizedOrigins : [];
   } catch (error) {
     googleSigninSlot.textContent = "Google login unavailable right now.";
+    setGoogleAuthHint("");
     return;
   }
 
   if (!googleClientId) {
     googleSigninSlot.textContent = "Google login setup pending.";
+    setGoogleAuthHint("Add GOOGLE_CLIENT_ID in backend/.env before using Google login.");
     return;
+  }
+
+  if (!authorizedOrigins.includes(currentOrigin)) {
+    setGoogleAuthHint(
+      `Current origin: ${currentOrigin}. If Google shows "origin_mismatch", add this exact origin in Google Cloud Console and in FRONTEND_ORIGINS.`
+    );
+  } else {
+    setGoogleAuthHint("");
   }
 
   if (!window.google?.accounts?.id) {
