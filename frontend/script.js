@@ -4,8 +4,8 @@ const API_URL = ["localhost", "127.0.0.1"].includes(window.location.hostname)
   : REMOTE_API_URL;
 
 const AUTH_STORAGE_KEY = "arsh_ai_auth_token";
-const emailPattern = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
-const namePattern = /^[A-Za-z\s]+$/;
+
+const REGEX = { email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, name: /^[A-Za-z\s]+$/ };
 
 const toggle = document.getElementById("menu-toggle");
 const navMenu = document.querySelector("nav ul");
@@ -34,14 +34,8 @@ const setStatusMessage = (element, message, type = "") => {
   }
 
   if (element === contactStatus) {
-    element.style.color =
-      type === "success"
-        ? "#00ff99"
-        : type === "warning"
-          ? "orange"
-          : type === "error"
-            ? "red"
-            : "";
+    const colors = { success: "#00ff99", warning: "orange", error: "red" };
+    element.style.color = colors[type] || "";
   }
 };
 
@@ -112,18 +106,12 @@ const request = async (path, options = {}) => {
   const response = await fetch(`${API_URL}${path}`, {
     headers: {
       "Content-Type": "application/json",
-      ...getAuthHeaders(),
-      ...options.headers
+      ...getAuthHeaders()
     },
     ...options
   });
-
   const data = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    throw new Error(data.error || "Request failed.");
-  }
-
+  if (!response.ok) throw new Error(data.error || "Request failed.");
   return data;
 };
 
@@ -293,12 +281,12 @@ registerForm.addEventListener("submit", async event => {
     return;
   }
 
-  if (!namePattern.test(name)) {
+  if (!REGEX.name.test(name)) {
     setStatusMessage(authStatus, "Name must contain only letters.", "error");
     return;
   }
 
-  if (!emailPattern.test(email)) {
+  if (!REGEX.email.test(email)) {
     setStatusMessage(authStatus, "Enter a valid email address.", "error");
     return;
   }
@@ -365,12 +353,12 @@ contactForm.addEventListener("submit", async event => {
     return;
   }
 
-  if (!namePattern.test(name)) {
+  if (!REGEX.name.test(name)) {
     setStatusMessage(contactStatus, "Name must contain only letters.", "error");
     return;
   }
 
-  if (!emailPattern.test(email)) {
+  if (!REGEX.email.test(email)) {
     setStatusMessage(contactStatus, "Invalid email address.", "error");
     return;
   }
@@ -391,6 +379,160 @@ contactForm.addEventListener("submit", async event => {
     setStatusMessage(contactStatus, error.message || "Server error. Please try again later.", "error");
   }
 });
+
+/**
+ * AI Chatbot Logic
+ */
+const chatbotContainer = document.getElementById("ai-chatbot");
+const chatToggleBtn = document.getElementById("chat-toggle-btn");
+const chatMinimize = document.getElementById("chat-minimize");
+const chatForm = document.getElementById("chat-form");
+const chatInput = document.getElementById("chat-input");
+const chatBody = document.getElementById("chat-body");
+
+const appendMessage = (text, sender) => {
+  const msgDiv = document.createElement("div");
+  msgDiv.className = `message ${sender}`;
+
+  // Premium Styling with Clean Code
+  const styles = {
+    borderRadius: sender === "user" ? "20px 20px 5px 20px" : "20px 20px 20px 5px",
+    padding: "12px 18px",
+    marginBottom: "15px",
+    maxWidth: "85%",
+    width: "fit-content",
+    boxShadow: "0 6px 16px rgba(0, 0, 0, 0.06)",
+    lineHeight: "1.5",
+    fontSize: "0.95rem",
+    background: sender === "user" ? "linear-gradient(135deg, #007AFF, #005BB5)" : "#f0f7ff",
+    color: sender === "user" ? "#ffffff" : "#333333",
+    border: sender === "bot" ? "1px solid #ddecff" : "none",
+    alignSelf: sender === "user" ? "flex-end" : "flex-start"
+  };
+  Object.assign(msgDiv.style, styles);
+
+  const formattedText = text
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
+    .replace(/^\s*[\*•]\s+(.*)/gm, '• $1')            // Bullet points
+    .replace(/\n/g, '<br>');                          // Line breaks
+
+  msgDiv.innerHTML = formattedText;
+  chatBody.appendChild(msgDiv);
+  chatBody.scrollTop = chatBody.scrollHeight;
+};
+
+chatToggleBtn?.addEventListener("click", () => {
+  chatbotContainer.classList.toggle("active");
+});
+
+chatMinimize?.addEventListener("click", () => {
+  chatbotContainer.classList.remove("active");
+});
+
+chatForm?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const message = chatInput.value.trim();
+  if (!message) return;
+
+  // User message show karo
+  appendMessage(message, "user");
+  chatInput.value = "";
+
+  // Bot typing state (optional professional touch)
+  const typingId = "bot-typing";
+  const typingDiv = document.createElement("div");
+  typingDiv.id = typingId;
+  typingDiv.className = "message bot";
+  typingDiv.innerHTML = '<span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>';
+  chatBody.appendChild(typingDiv);
+  chatBody.scrollTop = chatBody.scrollHeight;
+
+  try {
+    const data = await request("/api/chat", {
+      method: "POST",
+      body: JSON.stringify({ message })
+    });
+    document.getElementById(typingId)?.remove();
+    if (data.reply) appendMessage(data.reply, "bot");
+  } catch (error) {
+    document.getElementById(typingId)?.remove();
+
+    let friendlyError = "Maaf kijiyega, server se sampark nahi ho paa raha hai.";
+    if (error.message.includes("Failed to fetch")) {
+      friendlyError = "Server offline hai ya internet slow hai. Kripya thodi der baad koshish karein.";
+    } else if (error.message !== "Request failed.") {
+      friendlyError = error.message;
+    }
+
+    appendMessage(friendlyError, "bot");
+    console.error("Critical Chatbot Error:", error);
+  }
+});
+
+/**
+ * Premium UI Redesign: Chat Input Section
+ * Applying clean, modern "Pill" design logic via JS for instant implementation.
+ */
+const applyPremiumInputStyles = () => {
+  const wrapper = document.querySelector('.chat-input-wrapper');
+  const form = document.getElementById('chat-form');
+  const input = document.getElementById('chat-input');
+  const btn = document.getElementById('chat-send-btn');
+
+  if (!wrapper || !form || !input || !btn) return;
+
+  Object.assign(wrapper.style, {
+    padding: "12px 16px",
+    background: "#f8fbff",
+    borderTop: "1px solid #f0f2f5"
+  });
+
+  Object.assign(form.style, {
+    display: "flex",
+    alignItems: "center",
+    backgroundColor: "#e8f2fe",
+    borderRadius: "24px",
+    padding: "4px 8px 4px 16px",
+    transition: "all 0.2s ease-in-out"
+  });
+
+  Object.assign(input.style, {
+    flex: "1",
+    border: "none",
+    background: "transparent",
+    padding: "10px 0",
+    fontSize: "0.95rem",
+    outline: "none",
+    color: "#1c1e21"
+  });
+
+  Object.assign(btn.style, {
+    background: "linear-gradient(135deg, #007AFF, #005BB5)",
+    color: "#fff",
+    border: "none",
+    borderRadius: "50%",
+    width: "32px",
+    height: "32px",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: "8px",
+    boxShadow: "0 2px 4px rgba(0,122,255,0.3)",
+    transition: "transform 0.1s ease"
+  });
+
+  input.onfocus = () => {
+    form.style.backgroundColor = "#f0f7ff";
+    form.style.boxShadow = "0 0 0 2px rgba(0,122,255,0.2)";
+  };
+  input.onblur = () => {
+    form.style.backgroundColor = "#e8f2fe";
+    form.style.boxShadow = "none";
+  };
+};
+
+applyPremiumInputStyles();
 
 hydrateAuthState();
 initializeGoogleLogin();

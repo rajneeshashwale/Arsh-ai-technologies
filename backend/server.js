@@ -1,51 +1,52 @@
 const crypto = require("crypto");
-const https = require("https");
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 require("dotenv").config();
+const chatRouter = require("./chat");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
-const FRONTEND_ORIGINS = (process.env.FRONTEND_ORIGINS || "")
+const ALLOWED_ORIGINS = (process.env.FRONTEND_ORIGINS || "")
   .split(",")
   .map(origin => origin.trim())
   .filter(Boolean);
-const emailPattern = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
-const namePattern = /^[A-Za-z\s]+$/;
 const TOKEN_TTL_MS = 1000 * 60 * 60 * 24 * 7;
 
 app.disable("x-powered-by");
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || FRONTEND_ORIGINS.length === 0 || FRONTEND_ORIGINS.includes(origin)) {
+      if (!origin || ALLOWED_ORIGINS.length === 0 || ALLOWED_ORIGINS.includes(origin)) {
         return callback(null, true);
       }
-
       callback(new Error("Origin not allowed by CORS."));
     }
   })
 );
 app.use(express.json({ limit: "100kb" }));
 
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB connected successfully"))
-  .catch(error => console.error("MongoDB connection error:", error));
+// Database connection cleanup (Centralized)
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("✅ DB Connected"))
+  .catch(err => console.error("❌ DB Error:", err));
 
 const contactSchema = new mongoose.Schema({
-  name: { type: String, required: true, trim: true },
-  email: { type: String, required: true, trim: true, lowercase: true },
-  message: { type: String, required: true, trim: true },
+  name: String, email: String, message: String,
   date: { type: Date, default: Date.now }
 });
 
+// Unified Regex for performance
+const REGEX = {
+  email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+  name: /^[A-Za-z\s]+$/
+};
+
 const userSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true, trim: true },
-    email: { type: String, required: true, unique: true, trim: true, lowercase: true },
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true, lowercase: true },
     passwordHash: { type: String, default: null },
     passwordSalt: { type: String, default: null },
     authProvider: { type: String, enum: ["local", "google"], default: "local" },
@@ -68,10 +69,7 @@ const hashPassword = password => {
 };
 
 const verifyPassword = (password, passwordSalt, passwordHash) => {
-  if (!passwordSalt || !passwordHash) {
-    return false;
-  }
-
+  if (!passwordSalt || !passwordHash) return false;
   const derivedHash = crypto.scryptSync(password, passwordSalt, 64).toString("hex");
   return crypto.timingSafeEqual(
     Buffer.from(derivedHash, "hex"),
@@ -79,53 +77,17 @@ const verifyPassword = (password, passwordSalt, passwordHash) => {
   );
 };
 
-const fetchJson = url =>
-  new Promise((resolve, reject) => {
-    https
-      .get(url, response => {
-        let raw = "";
-
-        response.on("data", chunk => {
-          raw += chunk;
-        });
-
-        response.on("end", () => {
-          try {
-            const data = JSON.parse(raw || "{}");
-
-            if (response.statusCode && response.statusCode >= 400) {
-              return reject(new Error(data.error_description || data.error || "Request failed."));
-            }
-
-            resolve(data);
-          } catch (error) {
-            reject(error);
-          }
-        });
-      })
-      .on("error", reject);
-  });
-
-const verifyGoogleCredential = async credential => {
-  const tokenInfo = await fetchJson(
-    `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`
-  );
+// Use native fetch logic (Node 18+) or cleaner promise wrapper
+const verifyGoogleCredential = async (credential) => {
+  const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`);
+  const tokenInfo = await response.json();
 
   if (!tokenInfo.sub || !tokenInfo.email) {
     throw new Error("Incomplete Google profile.");
   }
-
-  if (!["accounts.google.com", "https://accounts.google.com"].includes(tokenInfo.iss)) {
-    throw new Error("Invalid Google issuer.");
-  }
-
-  if (tokenInfo.aud !== GOOGLE_CLIENT_ID) {
-    throw new Error("Google client ID mismatch.");
-  }
-
-  if (tokenInfo.email_verified !== "true") {
-    throw new Error("Google email is not verified.");
-  }
+  if (!["accounts.google.com", "https://accounts.google.com"].includes(tokenInfo.iss)) throw new Error("Invalid issuer.");
+  if (tokenInfo.aud !== GOOGLE_CLIENT_ID) throw new Error("Client ID mismatch.");
+  if (tokenInfo.email_verified !== "true") throw new Error("Email not verified.");
 
   return tokenInfo;
 };
@@ -146,13 +108,10 @@ const getTokenFromRequest = request => {
   return authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
 };
 
-const authenticate = async (request, response, next) => {
+const authenticate = async (req, res, next) => {
   try {
-    const authToken = getTokenFromRequest(request);
-
-    if (!authToken) {
-      return response.status(401).json({ error: "Authentication required." });
-    }
+    const authToken = getTokenFromRequest(req);
+    if (!authToken) return res.status(401).json({ error: "Auth required." });
 
     const user = await User.findOne({
       authToken,
@@ -160,14 +119,14 @@ const authenticate = async (request, response, next) => {
     });
 
     if (!user) {
-      return response.status(401).json({ error: "Session expired. Please login again." });
+      return res.status(401).json({ error: "Session expired." });
     }
 
-    request.user = user;
+    req.user = user;
     next();
   } catch (error) {
     console.error("Auth middleware error:", error);
-    response.status(500).json({ error: "Server error. Try again later." });
+    res.status(500).json({ error: "Server error." });
   }
 };
 
@@ -179,7 +138,7 @@ app.get("/api/auth/google/config", (request, response) => {
   response.json({
     enabled: Boolean(GOOGLE_CLIENT_ID),
     clientId: GOOGLE_CLIENT_ID || null,
-    authorizedOrigins: FRONTEND_ORIGINS
+    authorizedOrigins: ALLOWED_ORIGINS
   });
 });
 
@@ -192,11 +151,11 @@ app.post("/api/auth/register", async (request, response) => {
     return response.status(400).json({ error: "All fields are required." });
   }
 
-  if (!namePattern.test(name)) {
+  if (!REGEX.name.test(name)) {
     return response.status(400).json({ error: "Name must contain only letters." });
   }
 
-  if (!emailPattern.test(email)) {
+  if (!REGEX.email.test(email)) {
     return response.status(400).json({ error: "Enter a valid email address." });
   }
 
@@ -344,11 +303,11 @@ app.post("/api/contact", async (request, response) => {
     return response.status(400).json({ error: "All fields are required." });
   }
 
-  if (!namePattern.test(name)) {
+  if (!REGEX.name.test(name)) {
     return response.status(400).json({ error: "Name must contain only letters." });
   }
 
-  if (!emailPattern.test(email)) {
+  if (!REGEX.email.test(email)) {
     return response.status(400).json({ error: "Enter a valid email address." });
   }
 
@@ -366,6 +325,8 @@ app.post("/api/contact", async (request, response) => {
     response.status(500).json({ error: "Server error. Try again later." });
   }
 });
+
+app.use("/api/chat", chatRouter);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
