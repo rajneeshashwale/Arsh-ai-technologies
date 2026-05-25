@@ -1,9 +1,19 @@
 const crypto = require("crypto");
+const path = require("path");
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
-require("dotenv").config();
+require("dotenv").config({ path: path.join(__dirname, ".env") });
+
 const chatRouter = require("./chat");
+const { connectMongo } = require("./shared/mongo");
+const {
+  EMAIL_REGEX,
+  NAME_REGEX,
+  normalizeEmail,
+  saveContactLead,
+  validateContactLead
+} = require("./shared/contact-leads");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -21,26 +31,20 @@ app.use(
       if (!origin || ALLOWED_ORIGINS.length === 0 || ALLOWED_ORIGINS.includes(origin)) {
         return callback(null, true);
       }
+
       callback(new Error("Origin not allowed by CORS."));
     }
   })
 );
 app.use(express.json({ limit: "100kb" }));
 
-// Database connection cleanup (Centralized)
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ DB Connected"))
-  .catch(err => console.error("❌ DB Error:", err));
+connectMongo()
+  .then(() => console.log("DB Connected"))
+  .catch(err => console.error("DB Error:", err));
 
-const contactSchema = new mongoose.Schema({
-  name: String, email: String, message: String,
-  date: { type: Date, default: Date.now }
-});
-
-// Unified Regex for performance
 const REGEX = {
-  email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-  name: /^[A-Za-z\s]+$/
+  email: EMAIL_REGEX,
+  name: NAME_REGEX
 };
 
 const userSchema = new mongoose.Schema(
@@ -57,10 +61,7 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const Contact = mongoose.model("Contact", contactSchema);
-const User = mongoose.model("User", userSchema);
-
-const normalizeEmail = email => email.trim().toLowerCase();
+const User = mongoose.models.User || mongoose.model("User", userSchema);
 
 const hashPassword = password => {
   const passwordSalt = crypto.randomBytes(16).toString("hex");
@@ -69,7 +70,10 @@ const hashPassword = password => {
 };
 
 const verifyPassword = (password, passwordSalt, passwordHash) => {
-  if (!passwordSalt || !passwordHash) return false;
+  if (!passwordSalt || !passwordHash) {
+    return false;
+  }
+
   const derivedHash = crypto.scryptSync(password, passwordSalt, 64).toString("hex");
   return crypto.timingSafeEqual(
     Buffer.from(derivedHash, "hex"),
@@ -77,17 +81,25 @@ const verifyPassword = (password, passwordSalt, passwordHash) => {
   );
 };
 
-// Use native fetch logic (Node 18+) or cleaner promise wrapper
-const verifyGoogleCredential = async (credential) => {
+const verifyGoogleCredential = async credential => {
   const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`);
   const tokenInfo = await response.json();
 
   if (!tokenInfo.sub || !tokenInfo.email) {
     throw new Error("Incomplete Google profile.");
   }
-  if (!["accounts.google.com", "https://accounts.google.com"].includes(tokenInfo.iss)) throw new Error("Invalid issuer.");
-  if (tokenInfo.aud !== GOOGLE_CLIENT_ID) throw new Error("Client ID mismatch.");
-  if (tokenInfo.email_verified !== "true") throw new Error("Email not verified.");
+
+  if (!["accounts.google.com", "https://accounts.google.com"].includes(tokenInfo.iss)) {
+    throw new Error("Invalid issuer.");
+  }
+
+  if (tokenInfo.aud !== GOOGLE_CLIENT_ID) {
+    throw new Error("Client ID mismatch.");
+  }
+
+  if (tokenInfo.email_verified !== "true") {
+    throw new Error("Email not verified.");
+  }
 
   return tokenInfo;
 };
@@ -111,7 +123,10 @@ const getTokenFromRequest = request => {
 const authenticate = async (req, res, next) => {
   try {
     const authToken = getTokenFromRequest(req);
-    if (!authToken) return res.status(401).json({ error: "Auth required." });
+
+    if (!authToken) {
+      return res.status(401).json({ error: "Auth required." });
+    }
 
     const user = await User.findOne({
       authToken,
@@ -299,26 +314,13 @@ app.post("/api/contact", async (request, response) => {
   const email = request.body.email?.trim() || "";
   const message = request.body.message?.trim() || "";
 
-  if (!name || !email || !message) {
-    return response.status(400).json({ error: "All fields are required." });
-  }
-
-  if (!REGEX.name.test(name)) {
-    return response.status(400).json({ error: "Name must contain only letters." });
-  }
-
-  if (!REGEX.email.test(email)) {
-    return response.status(400).json({ error: "Enter a valid email address." });
+  const validationError = validateContactLead({ name, email, message });
+  if (validationError) {
+    return response.status(400).json({ error: validationError });
   }
 
   try {
-    const newContact = new Contact({
-      name,
-      email: normalizeEmail(email),
-      message
-    });
-
-    await newContact.save();
+    await saveContactLead({ name, email, message });
     response.json({ message: "Form submitted successfully." });
   } catch (error) {
     console.error("Contact save error:", error);
