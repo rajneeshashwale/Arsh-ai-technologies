@@ -37,6 +37,18 @@ const PRODUCTS = Object.freeze([
 
 const SERVICES = Object.freeze([
   {
+    name: "Website Development",
+    summary: "Modern, responsive, SEO-optimized websites with cutting-edge UI/UX and AI integration."
+  },
+  {
+    name: "App Development",
+    summary: "Native and cross-platform iOS & Android mobile applications with AI-powered features."
+  },
+  {
+    name: "IoT Solutions",
+    summary: "Smart, connected device ecosystems with real-time monitoring and data analytics."
+  },
+  {
     name: "AI Strategy & Consulting",
     summary: "Roadmapping, transformation planning, and AI adoption guidance."
   },
@@ -51,14 +63,6 @@ const SERVICES = Object.freeze([
   {
     name: "Cloud AI Integration",
     summary: "Integrating AI capabilities into existing cloud ecosystems and workflows."
-  },
-  {
-    name: "Website Development",
-    summary: "Modern, responsive, SEO-optimized websites with cutting-edge UI/UX and AI integration."
-  },
-  {
-    name: "App Development",
-    summary: "Native and cross-platform iOS & Android mobile applications with AI-powered features."
   }
 ]);
 

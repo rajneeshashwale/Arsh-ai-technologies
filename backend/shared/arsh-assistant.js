@@ -79,6 +79,18 @@ function getRuleBasedFallback(message) {
     return `**App Development Service** 📱\n\nHaan! Hum iOS aur Android apps develop karte hain!\n\n**Kya milega:**\n• ✅ Native Android & iOS Apps\n• ✅ Cross-platform (Flutter / React Native)\n• ✅ AI-powered Features\n• ✅ Clean Modern UI/UX\n• ✅ Backend & API Integration\n• ✅ Play Store & App Store Publishing\n• ✅ Push Notifications & Analytics\n\n**Technologies:** Flutter, React Native, Firebase, Node.js\n\n**Pricing:** Customized based on project scope & features.\n\n📧 **info@arshai.tech** | 📞 **+91 8319850982**\nApni app idea share karein! 💡`;
   }
 
+  // ── IoT Solutions ─────────────────────────────────────────────────────────
+  if (
+    msg.includes("iot") ||
+    msg.includes("internet of things") ||
+    msg.includes("smart device") ||
+    msg.includes("connected device") ||
+    msg.includes("hardware integration") ||
+    msg.includes("sensor")
+  ) {
+    return `**IoT Solutions Service** 🌐🔌\n\nHaan! Hum smart devices aur IoT ecosystems develop karte hain!\n\n**Kya milega:**\n• ✅ Smart Connected Devices\n• ✅ Real-time Monitoring & Data Analytics\n• ✅ Secure Cloud Infrastructure Integration\n• ✅ Custom Sensor Networks\n• ✅ Automation & Remote Control\n\n**Technologies:** Arduino, Raspberry Pi, MQTT, AWS IoT, Node.js\n\n**Pricing:** Customized based on hardware and software requirements.\n\n📧 **info@arshai.tech** | 📞 **+91 8319850982**\nApne IoT project ke bare mein baat karein! 💡`;
+  }
+
   // ── AI / Machine Learning ────────────────────────────────────────────────
   if (
     msg.includes("artificial intelligence") ||
