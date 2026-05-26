@@ -51,6 +51,14 @@ const SERVICES = Object.freeze([
   {
     name: "Cloud AI Integration",
     summary: "Integrating AI capabilities into existing cloud ecosystems and workflows."
+  },
+  {
+    name: "Website Development",
+    summary: "Modern, responsive, SEO-optimized websites with cutting-edge UI/UX and AI integration."
+  },
+  {
+    name: "App Development",
+    summary: "Native and cross-platform iOS & Android mobile applications with AI-powered features."
   }
 ]);
 
