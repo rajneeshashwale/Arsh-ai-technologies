@@ -2,23 +2,17 @@
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "@modelcontextprotocol/sdk": "^1.29.0",
-    "body": "^5.1.0",
-    "body-parser": "^2.2.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "mongodb": "^7.0.0",
     "mongoose": "^8.19.3",
-    "parser": "^0.1.4",
-    "passport": "^0.7.0",
-    "passport-local": "^1.0.0",
-    "passport-local-mongoose": "^9.0.1",
     "zod": "^4.4.3"
   },
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "db.js",
+  "main": "server.js",
   "devDependencies": {
     "nodemon": "^3.1.11"
   },
