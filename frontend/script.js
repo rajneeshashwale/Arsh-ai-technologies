@@ -238,9 +238,9 @@ if ("IntersectionObserver" in window) {
     .forEach(card => card.classList.add("show"));
 }
 
-authOpenButton.addEventListener("click", () => openAuthModal("login"));
-authCloseButton.addEventListener("click", closeAuthModal);
-logoutButton.addEventListener("click", async () => {
+authOpenButton?.addEventListener("click", () => openAuthModal("login"));
+authCloseButton?.addEventListener("click", closeAuthModal);
+logoutButton?.addEventListener("click", async () => {
   try {
     await request("/api/auth/logout", { method: "POST" });
   } catch (error) {
@@ -251,14 +251,14 @@ logoutButton.addEventListener("click", async () => {
   }
 });
 
-authModal.addEventListener("click", event => {
+authModal?.addEventListener("click", event => {
   if (event.target.hasAttribute("data-close-auth")) {
     closeAuthModal();
   }
 });
 
 document.addEventListener("keydown", event => {
-  if (event.key === "Escape" && authModal.classList.contains("open")) {
+  if (event.key === "Escape" && authModal?.classList.contains("open")) {
     closeAuthModal();
   }
 });
@@ -269,7 +269,7 @@ authTabs.forEach(tab => {
   });
 });
 
-registerForm.addEventListener("submit", async event => {
+registerForm?.addEventListener("submit", async event => {
   event.preventDefault();
 
   const name = document.getElementById("register-name").value.trim();
@@ -313,7 +313,7 @@ registerForm.addEventListener("submit", async event => {
   }
 });
 
-loginForm.addEventListener("submit", async event => {
+loginForm?.addEventListener("submit", async event => {
   event.preventDefault();
 
   const email = document.getElementById("login-email").value.trim();
@@ -341,7 +341,7 @@ loginForm.addEventListener("submit", async event => {
   }
 });
 
-contactForm.addEventListener("submit", async event => {
+contactForm?.addEventListener("submit", async event => {
   event.preventDefault();
 
   const name = document.getElementById("name").value.trim();
@@ -389,6 +389,60 @@ const chatMinimize = document.getElementById("chat-minimize");
 const chatForm = document.getElementById("chat-form");
 const chatInput = document.getElementById("chat-input");
 const chatBody = document.getElementById("chat-body");
+
+/**
+ * Client-side fallback for when the backend is unreachable.
+ * Provides intelligent rule-based responses using company data.
+ */
+const getClientFallbackReply = (message) => {
+  const msg = message.toLowerCase().trim();
+
+  if (/^(hi|hello|hey|namaste|hii|helo|good morning|good evening|good afternoon|namaskar|howdy|hola)\b/.test(msg)) {
+    return `**Namaste! 🙏**\n\nMain **Arsh AI Assistant** hoon - Arsh AI Technologies ka official assistant!\n\nMain aapki help kar sakta hoon:\n• 🛠️ **Services** - Website, App, AI Development\n• 📦 **Products** - AI Analytics, Chatbot, Automation\n• 💰 **Pricing** - Project quotes\n• 📞 **Contact** - Team se baat karein\n• 🏢 **About Us** - Company info\n\nBas poochh lijiye! 😊`;
+  }
+
+  if (msg.includes("service") || msg.includes("kya karte") || msg.includes("what do you offer") || msg.includes("what you do") || msg.includes("offerings")) {
+    return `**Arsh AI Technologies ki Services** 🚀\n\n• 🎯 **AI Strategy & Consulting** — Business AI roadmap\n• 🔧 **Data Engineering** — Scalable data pipelines\n• 🤖 **Custom AI Model Development** — Tailored ML models\n• ☁️ **Cloud AI Integration** — Seamless AI integration\n• 🌐 **Website Development** — Modern, responsive websites\n• 📱 **App Development** — iOS & Android apps\n\n📧 **info@arshai.tech** | 📞 **+91 8319850982**`;
+  }
+
+  if (msg.includes("product") || msg.includes("kya banate") || msg.includes("what products")) {
+    return `**Arsh AI Technologies ke Products** 📦\n\n• 🧠 **AI Analytics Engine** — Predictive analytics platform\n• ⚙️ **Automation Assistant** — Business process automation\n• 💬 **AI Chatbot Suite** — 24/7 customer engagement\n• ☁️ **Cloud AI Platform** — Scalable AI deployment\n\n📧 **info@arshai.tech** | 📞 **+91 8319850982**`;
+  }
+
+  if (msg.includes("website") || msg.includes("web dev") || msg.includes("web design")) {
+    return `**Website Development Service** 🌐\n\n• ✅ Responsive Design\n• ✅ Modern UI/UX\n• ✅ SEO Optimized\n• ✅ AI Integration (optional)\n• ✅ E-commerce Support\n\n**Technologies:** HTML, CSS, JS, React, Node.js, MongoDB\n\n📧 **info@arshai.tech** | 📞 **+91 8319850982**`;
+  }
+
+  if (msg.includes("app") || msg.includes("mobile") || msg.includes("android") || msg.includes("ios") || msg.includes("flutter")) {
+    return `**App Development Service** 📱\n\n• ✅ Native Android & iOS Apps\n• ✅ Cross-platform (Flutter / React Native)\n• ✅ AI-powered Features\n• ✅ Play Store & App Store Publishing\n\n📧 **info@arshai.tech** | 📞 **+91 8319850982**`;
+  }
+
+  if (msg.includes("price") || msg.includes("cost") || msg.includes("kitna") || msg.includes("rate") || msg.includes("charge") || msg.includes("pricing") || msg.includes("budget")) {
+    return `**Pricing Policy** 💰\n\nHamari pricing **customized** hoti hai — project scope ke according.\n\n**Free Consultation uplabdh hai!**\n\n📧 **info@arshai.tech** | 📞 **+91 8319850982**`;
+  }
+
+  if (msg.includes("contact") || msg.includes("phone") || msg.includes("email") || msg.includes("address") || msg.includes("location") || msg.includes("number")) {
+    return `**Contact Arsh AI Technologies** 📞\n\n📧 **Email:** info@arshai.tech\n📞 **Phone:** +91 8319850982\n📍 **Location:** Balaghat, Madhya Pradesh, India\n\nHamari team 24 ghante ke andar reply karti hai. 😊`;
+  }
+
+  if (msg.includes("about") || msg.includes("kaun ho") || msg.includes("who are you") || msg.includes("company") || msg.includes("arsh ai") || msg.includes("team")) {
+    return `**Arsh AI Technologies** 🏢\n\n**50+** successful projects, **25+** happy clients, **10+** AI solutions — **99.9% uptime!**\n\n**Specialty:** AI Products, Web & App Dev, Cloud AI, Data Engineering\n\n📧 **info@arshai.tech** | 📞 **+91 8319850982**`;
+  }
+
+  if (msg.includes("ai") || msg.includes("machine learning") || msg.includes("deep learning") || msg.includes("chatbot") || msg.includes("nlp")) {
+    return `**AI & Machine Learning Solutions** 🤖\n\n• 🧠 **Custom AI Models**\n• 💬 **AI Chatbots** — 24/7 support\n• 📊 **Predictive Analytics**\n• ⚙️ **Process Automation**\n• 🗣️ **NLP Solutions**\n\n📧 **info@arshai.tech** | 📞 **+91 8319850982**`;
+  }
+
+  if (msg.includes("iot") || msg.includes("internet of things") || msg.includes("smart device") || msg.includes("sensor")) {
+    return `**IoT Solutions** 🌐🔌\n\n• ✅ Smart Connected Devices\n• ✅ Real-time Monitoring & Analytics\n• ✅ Secure Cloud Infrastructure\n• ✅ Custom Sensor Networks\n\n📧 **info@arshai.tech** | 📞 **+91 8319850982**`;
+  }
+
+  if (msg.includes("thank") || msg.includes("shukriya") || msg.includes("dhanyavad") || msg.includes("thanks") || msg.includes("awesome") || msg.includes("great")) {
+    return `Bahut shukriya! 🙏 Koi aur sawaal ho to bejhijhak poochhein!\n\n📧 **info@arshai.tech** | 📞 **+91 8319850982**`;
+  }
+
+  return `Main **Arsh AI Assistant** hoon! 😊\n\nAap pooch sakte hain:\n• 🛠️ **Services** — Website, App, AI Development\n• 📦 **Products** — AI Analytics, Chatbot, Automation\n• 💰 **Pricing** — Project quote lein\n• 📞 **Contact** — Team se baat karein\n• 🏢 **About Us** — Company info\n\n📧 **info@arshai.tech**`;
+};
 
 const appendMessage = (text, sender) => {
   const msgDiv = document.createElement("div");
@@ -457,15 +511,10 @@ chatForm?.addEventListener("submit", async (e) => {
   } catch (error) {
     document.getElementById(typingId)?.remove();
 
-    let friendlyError = "Maaf kijiyega, server se sampark nahi ho paa raha hai.";
-    if (error.message.includes("Failed to fetch")) {
-      friendlyError = "Server offline hai ya internet slow hai. Kripya thodi der baad koshish karein.";
-    } else if (error.message !== "Request failed.") {
-      friendlyError = error.message;
-    }
-
-    appendMessage(friendlyError, "bot");
-    console.error("Critical Chatbot Error:", error);
+    // Use client-side fallback when backend is unreachable
+    const fallbackReply = getClientFallbackReply(message);
+    appendMessage(fallbackReply, "bot");
+    console.warn("Backend unreachable, using client fallback:", error.message);
   }
 });
 
@@ -534,5 +583,7 @@ const applyPremiumInputStyles = () => {
 
 applyPremiumInputStyles();
 
-hydrateAuthState();
-initializeGoogleLogin();
+if (authOpenButton) {
+  hydrateAuthState();
+  initializeGoogleLogin();
+}

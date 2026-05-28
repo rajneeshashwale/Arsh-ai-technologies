@@ -38,9 +38,13 @@ app.use(
 );
 app.use(express.json({ limit: "100kb" }));
 
-connectMongo()
-  .then(() => console.log("DB Connected"))
-  .catch(err => console.error("DB Error:", err));
+if (process.env.MONGO_URI) {
+  connectMongo()
+    .then(() => console.log("DB Connected"))
+    .catch(err => console.error("DB Error:", err));
+} else {
+  console.warn("MONGO_URI not configured. DB features (auth, contact form) are disabled. Chat will use rule-based fallback.");
+}
 
 const REGEX = {
   email: EMAIL_REGEX,
