@@ -181,7 +181,7 @@ const initializeGoogleLogin = async () => {
 
   if (!authorizedOrigins.includes(currentOrigin)) {
     setGoogleAuthHint(
-      `Current origin: ${currentOrigin}. If Google shows "origin_mismatch", add this exact origin in Google Cloud Console and in FRONTEND_ORIGINS.`
+      // `Current origin: ${currentOrigin}. If Google shows "origin_mismatch", add this exact origin in Google Cloud Console and in FRONTEND_ORIGINS.`
     );
   } else {
     setGoogleAuthHint("");
